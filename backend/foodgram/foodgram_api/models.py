@@ -78,7 +78,7 @@ class Recipe(models.Model):
     name = models.CharField(max_length=200,
                             blank=False,
                             null=False)
-    image = models.ImageField(upload_to=settings.MEDIA_URL,
+    image = models.ImageField(upload_to='/foodgram/',
                               blank=False,
                               null=False)
     text = models.CharField(max_length=500,
