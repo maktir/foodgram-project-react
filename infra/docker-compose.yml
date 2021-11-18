@@ -7,6 +7,12 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ../frontend/:/app/result_build/
+  backend:
+    image: maktir/foodgram
+    restart: always
+    volumes:
+      - static_value:/code/static/
+      - media_value:/code/media/
   nginx:
     image: nginx:1.19.3
     ports:

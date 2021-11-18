@@ -1,10 +1,12 @@
 from django.contrib.auth import get_user_model
-from rest_framework import serializers
 from drf_extra_fields.fields import Base64ImageField
+from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from .models import Recipe, IngredientsOfRecipe, Favorite, Cart, Tag, Ingredient
 from users.serializers import UserSerializer
+
+from .models import (Cart, Favorite, Ingredient, IngredientsOfRecipe, Recipe,
+                     Tag)
 
 User = get_user_model()
 
@@ -24,7 +26,9 @@ class TagSerializer(serializers.ModelSerializer):
 class IngredientsOfRecipeSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.ReadOnlyField(source='ingredient.name')
-    measurement_unit = serializers.ReadOnlyField(source='ingredient.measurement_unit')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit'
+    )
 
     class Meta:
         model = IngredientsOfRecipe
@@ -59,20 +63,25 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         exclude = ('pub_date',)
 
     def get_ingredients(self, recipe):
-        ingredients_of_recipe = IngredientsOfRecipe.objects.filter(recipe=recipe)
-        return IngredientsOfRecipeSerializer(ingredients_of_recipe, many=True).data
+        ingredients_of_recipe = IngredientsOfRecipe.objects.filter(
+            recipe=recipe
+        )
+        return IngredientsOfRecipeSerializer(ingredients_of_recipe,
+                                             many=True).data
 
     def get_is_favorited(self, recipe):
         request = self.context.get('request')
         if request.user is None or request.user.is_anonymous:
             return False
-        return Favorite.objects.filter(user=request.user.id, recipe=recipe.id).exists()
+        return Favorite.objects.filter(user=request.user.id,
+                                       recipe=recipe.id).exists()
 
     def get_is_in_shopping_cart(self, recipe):
         request = self.context.get('request')
         if request.user is None or request.user.is_anonymous:
             return False
-        return Cart.objects.filter(user=request.user.id, recipe=recipe.id).exists()
+        return Cart.objects.filter(user=request.user.id,
+                                   recipe=recipe.id).exists()
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
@@ -130,14 +139,18 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
     def validate_cooking_time(self, cooking_time):
         if int(cooking_time) < 1:
-            raise serializers.ValidationError("Cooking time can't be less than 1 min.")
+            raise serializers.ValidationError(
+                "Cooking time can't be less than 1 min."
+            )
         return cooking_time
 
     def validate_name(self, name):
         if self.context.get('request').method == 'GET':
             return name
         if Recipe.objects.filter(name=name).exists():
-            raise serializers.ValidationError("Recipe with such name already exists.")
+            raise serializers.ValidationError(
+                "Recipe with such name already exists."
+            )
         return name
 
 
@@ -181,32 +194,3 @@ class CartSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         return MarkedPreviewRepresentationSerializer(instance.recipe).data
-
-
-# class IngredientsForCartDownloadSerializer(serializers.ModelSerializer):
-#     name = serializers.CharField(
-#         source='ingredient.name'
-#     )
-#     measurement_unit = serializers.CharField(
-#         source='ingredient.measurement_unit'
-#     )
-#
-#     class Meta:
-#         model = IngredientsOfRecipe
-#         fields = ('name', 'measurement_unit', 'amount')
-#
-#
-# class CartDownloadSerializer(serializers.ModelSerializer):
-#     name = serializers.CharField(
-#         source='recipe.name'
-#     )
-#     ingredients = IngredientsForCartDownloadSerializer(
-#         source='recipe.ingredients', many=True
-#     )
-#     cooking_time = serializers.IntegerField(
-#         source='recipe.cooking_time'
-#     )
-#
-#     class Meta:
-#         model = Cart
-#         fields = ('id', 'name', 'ingredients', 'cooking_time')

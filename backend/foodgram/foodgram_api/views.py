@@ -1,20 +1,23 @@
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, mixins, status, permissions, filters
+from rest_framework import filters, mixins, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.core.exceptions import ObjectDoesNotExist
 
-from .filters import RecipeFilter
-from .models import (Recipe, Ingredient, Favorite, Cart, Tag, IngredientsOfRecipe)
-from . import serializers
-from .permissions import RecipePermissions
-from users.serializers import UserSerializer, RegistrySerializer, SubscriptionSerializer, SubscriptionListSerializer
-from .pagination import LimitPagination
-from .serializers import FavoriteSerializer, CartSerializer
 from users.models import Follow
+from users.serializers import (RegistrySerializer, SubscriptionListSerializer,
+                               SubscriptionSerializer, UserSerializer)
+
+from . import serializers
+from .filters import RecipeFilter
+from .models import (Cart, Favorite, Ingredient, IngredientsOfRecipe, Recipe,
+                     Tag)
+from .pagination import LimitPagination
+from .permissions import RecipePermissions
+from .serializers import CartSerializer, FavoriteSerializer
 
 User = get_user_model()
 
@@ -48,7 +51,9 @@ class UserViewSet(viewsets.ModelViewSet):
             url_path='set_password',
             permission_classes=(permissions.IsAuthenticated,))
     def set_password(self, request):
-        if not request.user.check_password(request.data.get('current_password')):
+        if not request.user.check_password(
+                request.data.get('current_password')
+        ):
             return Response({'current_password': ['Wrong password.']},
                             status=status.HTTP_400_BAD_REQUEST)
         request.user.set_password(request.data.get('new_password'))
@@ -137,15 +142,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                             context=context)
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response(serializer.data,
+                                status=status.HTTP_201_CREATED)
+            return Response(serializer.errors,
+                            status=status.HTTP_400_BAD_REQUEST)
         elif request.method == 'DELETE':
             try:
                 Favorite.objects.get(user=user, recipe=recipe).delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
             except ObjectDoesNotExist:
-                return Response({'errors': 'This recipe is not in your favorites.'},
-                                status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {'errors': 'This recipe is not in your favorites.'},
+                    status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True,
             methods=['GET', 'DELETE'],
@@ -160,15 +168,18 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                         context=context)
             if serializer.is_valid(raise_exception=True):
                 serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+                return Response(serializer.data,
+                                status=status.HTTP_201_CREATED)
+            return Response(serializer.errors,
+                            status.HTTP_400_BAD_REQUEST)
         elif request.method == 'DELETE':
             try:
                 Cart.objects.get(user=user, recipe=recipe).delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
             except ObjectDoesNotExist:
-                return Response({'errors': 'This recipe is not in your shopping cart.'},
-                                status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {'errors': 'This recipe is not in your shopping cart.'},
+                    status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False,
             methods=['GET'],
@@ -195,10 +206,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         file_data = []
         for item in structured_cart:
-            file_data.append(f'{item} - {structured_cart[item]["amount"]} '
-                             f'{structured_cart[item]["measurement_unit"]} \r\n')
+            file_data.append(
+                f'{item} - {structured_cart[item]["amount"]} '
+                f'{structured_cart[item]["measurement_unit"]} \r\n'
+            )
 
-        response = HttpResponse(file_data, 'Content-Type: text/plain')
+        response = HttpResponse(file_data,
+                                'Content-Type: text/plain')
         response['Content-Disposition'] = 'attachment; filename="shopping_cart.txt"'
         return response
 

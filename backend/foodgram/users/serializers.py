@@ -1,12 +1,10 @@
-from django.shortcuts import get_object_or_404
-from rest_framework import serializers
-from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
 from django.contrib.auth import get_user_model
-from .models import Follow
-
+from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
 
 from foodgram_api.models import Recipe
 
+from .models import Follow
 
 User = get_user_model()
 
@@ -24,7 +22,8 @@ class RegistrySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'id', 'username', 'first_name', 'last_name', 'password')
+        fields = ('email', 'id', 'username',
+                  'first_name', 'last_name', 'password')
 
     def create(self, validated_data):
         password = validated_data.pop('password')
@@ -45,13 +44,15 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('email', 'id', 'username', 'first_name', 'last_name', 'is_subscribed')
+        fields = ('email', 'id', 'username',
+                  'first_name', 'last_name', 'is_subscribed')
 
     def get_is_subscribed(self, author):
         request = self.context.get('request')
         if request is None or request.user.is_anonymous:
             return False
-        return Follow.objects.filter(user__id=request.user.id, author__id=author.id).exists()
+        return Follow.objects.filter(user__id=request.user.id,
+                                     author__id=author.id).exists()
 
 
 class MarkedPreviewRepresentationSerializer(serializers.ModelSerializer):
@@ -76,7 +77,8 @@ class SubscriptionListSerializer(serializers.ModelSerializer):
         model = User
         fields = ('email', 'id', 'username', 'first_name', 'last_name',
                   'is_subscribed', 'recipes', 'recipes_count')
-        read_only_fields = ('email', 'id', 'username', 'first_name', 'last_name')
+        read_only_fields = ('email', 'id', 'username',
+                            'first_name', 'last_name')
 
     def get_is_subscribed(self, obj):
         try:
