@@ -11,7 +11,15 @@ python -m venv venv
 ```
 - Установите зависимости: ``` pip install -r requirements.txt ```
 - ВАЖНО: проект подразумевает использование СУБД postgres, поэтому убедитесь, что заранее запустили сервер postgres и создали базу данных. Подробности: https://www.postgresql.org/docs/
-- Создайте .env файл в той же директории, где находится файл settings.py, и укажите данные для работы с базой данных в таком формате: DATABASE_URL=psql://database_user:database_password@host:port/database_name
+- Создайте .env файл в той же директории, где находится файл settings.py, и укажите данные для работы с базой данных в таком формате:
+```
+DB_ENGINE=django.db.backends.postgresql
+DB_NAME=<db_name>
+POSTGRES_USER=<postgres_user>
+POSTGRES_PASSWORD=<password>
+DB_HOST=<host>
+DB_PORT=<port>
+```
 - Проведите миграции: ``` python manage.py migrate ```
 - Опционально можете загрузить список ингредиентов ``` python manage.py loaddata ingredients.json ```
 - Запустите сервер ``` python manage.py runserver ```
