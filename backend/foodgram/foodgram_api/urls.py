@@ -26,6 +26,5 @@ router_api.register(
     basename='users'
 )
 urlpatterns = [
-    path('', include(router_api.urls)),
-    url(r'^auth/', include('djoser.urls.authtoken')),
+    path('', include(router_api.urls))
 ]

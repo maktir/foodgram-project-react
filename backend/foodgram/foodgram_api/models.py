@@ -1,7 +1,33 @@
 from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import Value, Exists, OuterRef
 
 User = get_user_model()
+
+
+class RecipeQuerySet(models.QuerySet):
+
+    def additional_properties(self, user):
+        if user.is_anonymous:
+            return self.annotate(is_favorited=Value(
+                False, output_field=models.BooleanField()
+            ),
+                is_in_shopping_cart=Value(
+                    False, output_field=models.BooleanField()
+                )
+            )
+        return self.annotate(
+            is_favorited=Exists(
+                Favorite.objects.filter(
+                    user=user, recipe__pk=OuterRef('pk')
+                )
+            ),
+            is_in_shopping_cart=Exists(
+                Cart.objects.filter(
+                    user=user, recipe__pk=OuterRef('pk')
+                )
+            )
+        )
 
 
 class Tag(models.Model):
@@ -19,6 +45,8 @@ class Tag(models.Model):
                             null=False)
 
     class Meta:
+        verbose_name = 'Tag'
+        verbose_name_plural = 'Tags'
         constraints = [
             models.UniqueConstraint(
                 fields=['slug'],
@@ -40,6 +68,13 @@ class TagsOfRecipe(models.Model):
                                on_delete=models.CASCADE,
                                null=True)
 
+    class Meta:
+        verbose_name = 'Tag of recipe'
+        verbose_name_plural = 'Tags of recipe'
+
+    def __str__(self):
+        return self.pk
+
 
 class Ingredient(models.Model):
     name = models.CharField(max_length=200,
@@ -51,6 +86,8 @@ class Ingredient(models.Model):
 
     class Meta:
         ordering = ['id']
+        verbose_name = 'Ingredient'
+        verbose_name_plural = 'Ingredients'
 
     def __str__(self):
         return f'{self.name}'
@@ -65,9 +102,13 @@ class IngredientsOfRecipe(models.Model):
                                on_delete=models.CASCADE)
     amount = models.PositiveSmallIntegerField()
 
+    def __str__(self):
+        return self.pk
+
 
 class Recipe(models.Model):
-    pub_date = models.DateTimeField(auto_now_add=True)
+    pub_date = models.DateTimeField(auto_now_add=True,
+                                    db_index=True)
     author = models.ForeignKey(User,
                                on_delete=models.CASCADE,
                                related_name='recipe',
@@ -90,11 +131,15 @@ class Recipe(models.Model):
     tags = models.ManyToManyField(Tag,
                                   through=TagsOfRecipe,
                                   related_name='tags')
-    is_favorited = models.BooleanField(default=False)
-    is_in_shopping_cart = models.BooleanField(default=False)
+    slug = models.SlugField(unique=True,
+                            null=True,
+                            blank=True)
+    objects = RecipeQuerySet.as_manager()
 
     class Meta:
         ordering = ['-pub_date']
+        verbose_name = 'Recipe'
+        verbose_name_plural = 'Recipes'
 
     def __str__(self):
         return f'{self.name}'
@@ -109,6 +154,8 @@ class Favorite(models.Model):
                                on_delete=models.CASCADE)
 
     class Meta:
+        verbose_name = 'Favorite'
+        verbose_name_plural = 'Favorites'
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
@@ -126,6 +173,8 @@ class Cart(models.Model):
                                on_delete=models.CASCADE)
 
     class Meta:
+        verbose_name = 'Carted recipe'
+        verbose_name_plural = 'Carted recipes'
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'],
