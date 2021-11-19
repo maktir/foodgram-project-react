@@ -1,11 +1,7 @@
 import os
 from pathlib import Path
-
-import environ
-
-env = environ.Env()
-environ.Env.read_env()
-
+from dotenv import load_dotenv
+load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-=8j8l4btwy&+4c@fg=500_82q$&h01$z+_)w=a5+dwop)3bcn('
@@ -60,7 +56,14 @@ TEMPLATES = [
 WSGI_APPLICATION = 'foodgram.wsgi.application'
 
 DATABASES = {
-    'default': env.db()
+    'default': {
+        'ENGINE': os.getenv('DB_ENGINE'),
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('POSTGRES_USER'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
+    }
 }
 
 AUTH_PASSWORD_VALIDATORS = [

@@ -26,12 +26,6 @@ class FavoriteAdmin(admin.ModelAdmin):
     list_filter = ('user', 'recipe')
 
 
-class FavoriteAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'recipe')
-    search_fields = ('user', 'recipe')
-    list_filter = ('user', 'recipe')
-
-
 class CartAdmin(FavoriteAdmin):
     pass
 
