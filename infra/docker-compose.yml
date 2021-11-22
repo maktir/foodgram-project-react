@@ -13,11 +13,13 @@ services:
     volumes:
       - ../frontend/:/app/result_build/
   backend:
-    image: maktir/foodgram:latest
+    build:
+      context: ../backend/foodgram
+      dockerfile: Dockerfile
     restart: always
     volumes:
-      - static_value:/code/static/
-      - media_value:/code/media/
+      - /code/static/
+      - /code/media/
     depends_on:
       - db
     env_file:
