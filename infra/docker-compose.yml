@@ -1,6 +1,11 @@
 version: '3.3'
 services:
-
+  db:
+    image: postgres:12.4
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ../backend/foodgram/.env
   frontend:
     build:
       context: ../frontend
@@ -13,6 +18,10 @@ services:
     volumes:
       - static_value:/code/static/
       - media_value:/code/media/
+    depends_on:
+      - db
+    env_file:
+      - ../backend/foodgram/.env
   nginx:
     image: nginx:1.19.3
     ports:
@@ -25,3 +34,4 @@ services:
     depends_on:
       - backend
       - frontend
+      - db
