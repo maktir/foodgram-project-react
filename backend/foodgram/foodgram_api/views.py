@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -140,12 +141,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
             context = {'request': request}
             serializer = FavoriteSerializer(data=data,
                                             context=context)
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()
-                return Response(serializer.data,
-                                status=status.HTTP_201_CREATED)
-            return Response(serializer.errors,
-                            status=status.HTTP_400_BAD_REQUEST)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data,
+                            status=status.HTTP_201_CREATED)
         elif request.method == 'DELETE':
             try:
                 Favorite.objects.get(user=user, recipe=recipe).delete()
@@ -166,12 +165,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
             context = {'request': request}
             serializer = CartSerializer(data=data,
                                         context=context)
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()
-                return Response(serializer.data,
-                                status=status.HTTP_201_CREATED)
-            return Response(serializer.errors,
-                            status.HTTP_400_BAD_REQUEST)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data,
+                            status=status.HTTP_201_CREATED)
         elif request.method == 'DELETE':
             try:
                 Cart.objects.get(user=user, recipe=recipe).delete()
@@ -186,23 +183,21 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=(permissions.IsAuthenticated, ))
     def download_shopping_cart(self, request):
         user = request.user
-        shopping_cart = user.carted.all()
         structured_cart = {}
-
-        for item in shopping_cart:
-            recipe = item.recipe
-            ingredients = IngredientsOfRecipe.objects.filter(recipe=recipe)
-            for ingredient in ingredients:
-                amount = ingredient.amount
-                name = ingredient.ingredient.name
-                measurement_unit = ingredient.ingredient.measurement_unit
-                if name not in structured_cart:
-                    structured_cart[name] = {
-                        'measurement_unit': measurement_unit,
-                        'amount': amount
-                    }
-                else:
-                    structured_cart[name]['amount'] = (structured_cart[name]['amount'] + amount)
+        ingredients = IngredientsOfRecipe.objects.filter(
+            recipe__carted__user=user
+        ).values(
+            'ingredient__name',
+            'ingredient__measurement_unit'
+        ).annotate(Sum('amount'))
+        for ingredient in ingredients:
+            amount = ingredient['amount__sum']
+            name = ingredient['ingredient__name']
+            measurement_unit = ingredient['ingredient__measurement_unit']
+            structured_cart[name] = {
+                'amount': amount,
+                'measurement_unit': measurement_unit
+            }
 
         file_data = []
         for item in structured_cart:

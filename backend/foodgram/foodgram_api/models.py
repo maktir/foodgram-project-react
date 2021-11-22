@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models import Value, Exists, OuterRef
+from django.db.models import Exists, OuterRef, Value
 
 User = get_user_model()
 
@@ -73,7 +73,7 @@ class TagsOfRecipe(models.Model):
         verbose_name_plural = 'Tags of recipe'
 
     def __str__(self):
-        return self.pk
+        return f'{self.pk}'
 
 
 class Ingredient(models.Model):
@@ -103,7 +103,7 @@ class IngredientsOfRecipe(models.Model):
     amount = models.PositiveSmallIntegerField()
 
     def __str__(self):
-        return self.pk
+        return f'{self.pk}'
 
 
 class Recipe(models.Model):
