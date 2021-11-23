@@ -2,8 +2,9 @@ version: '3.3'
 services:
   db:
     image: postgres:12.4
+    restart: always
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - PGDATA:/var/lib/postgresql/data/
     env_file:
       - ../backend/foodgram/.env
   frontend:
@@ -43,6 +44,6 @@ services:
       - backend
 
 volumes:
-  postgres_data:
+  PGDATA:
   static_value:
   media_value:
