@@ -3,7 +3,7 @@ services:
   db:
     image: postgres:12.4
     volumes:
-      - /var/lib/postgresql/data/
+      - postgres_data:/var/lib/postgresql/data/
     env_file:
       - ../backend/foodgram/.env
   frontend:
@@ -15,7 +15,7 @@ services:
     depends_on:
       - db
   backend:
-    image: opozing/backend:latest
+    image: maktir/backend:latest
     restart: always
     volumes:
       - static_value:/code/static/
