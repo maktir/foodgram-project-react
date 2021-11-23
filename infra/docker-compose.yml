@@ -39,3 +39,8 @@ services:
       - backend
       - frontend
       - db
+volumes:
+  - postgres_data:
+  - static_value:
+  - media_value:
+  - frontend_data:
