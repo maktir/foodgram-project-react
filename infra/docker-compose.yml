@@ -20,8 +20,8 @@ services:
       dockerfile: Dockerfile
     restart: always
     volumes:
-      - /code/static/
-      - /code/media/
+      - static_value:/code/static/
+      - media_value:/code/media/
     depends_on:
       - db
     env_file:
